@@ -5,6 +5,7 @@ import android.util.Log
 import com.yuchen.cityguide.data.PlacesDataSource
 import io.reactivex.Observable
 import com.yuchen.cityguide.data.Place
+import com.yuchen.cityguide.data.PlaceType
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
@@ -15,7 +16,7 @@ import retrofit2.converter.gson.GsonConverterFactory
  */
 class PlacesRemoteDataSource : PlacesDataSource {
 
-    private val mService: PlaceService
+    private val placeService: PlaceService
 
     constructor() {
         val retrofit = Retrofit.Builder()
@@ -25,30 +26,28 @@ class PlacesRemoteDataSource : PlacesDataSource {
                         GsonConverterFactory.create())
                 .baseUrl("https://maps.googleapis.com")
                 .build()
-        mService = retrofit.create(PlaceService::class.java)
+        placeService = retrofit.create(PlaceService::class.java)
 
     }
 
-    private fun fetchPlaces(type: String, location: Location): List<Place> {
+    private fun fetchPlaces(type: String, placeType: PlaceType, location: Location): List<Place> {
         val location = "%f,%f".format(location.latitude,
                 location.longitude)
         Log.d(TAG, "location $location")
-        return mService
+        return placeService
                 .fetchPlaces(types = type, key = KEY, location = location)
                 .flatMap { response ->
                     Observable.fromIterable(response.results)
-                            .doOnNext { place -> place.type = type }
+                            .doOnNext { place -> place.type = placeType }
                 }.toList().blockingGet()
 
     }
 
     override fun fetchPlaces(location: Location): Observable<List<Place>> {
         return Observable.fromCallable {
-            val cafeList = fetchPlaces("cafe", location)
-            Log.v(TAG, "cafeList $cafeList")
-            val barList = fetchPlaces("bar", location)
-            val restaurantList = fetchPlaces("restaurant", location)
-
+            val cafeList = fetchPlaces("cafés", PlaceType.CAFES, location)
+            val barList = fetchPlaces("bars", PlaceType.BARS, location)
+            val restaurantList = fetchPlaces("bistros", PlaceType.BISTROS, location)
             val combinedList = mutableListOf<Place>()
             combinedList.addAll(cafeList)
             combinedList.addAll(barList)

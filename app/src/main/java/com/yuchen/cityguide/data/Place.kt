@@ -5,10 +5,17 @@ package com.yuchen.cityguide.data
  */
 
 data class Place(var name: String, var geometry: Geometry, var rating: Float, var type:
-String)
+PlaceType)
 
 data class Geometry(var location: Location)
 
 data class Location(var lat: Double, var lng: Double)
 
 data class Response(var results: List<Place>)
+
+
+enum class PlaceType private constructor() {
+    BARS,
+    CAFES,
+    BISTROS
+}
