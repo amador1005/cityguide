@@ -1,8 +1,6 @@
 package com.yuchen.cityguide.data
 
 import android.location.Location
-import com.google.android.gms.location.places.AutocompletePrediction
-import com.google.android.gms.location.places.AutocompletePredictionBufferResponse
 import io.reactivex.Observable
 
 /**
@@ -10,5 +8,5 @@ import io.reactivex.Observable
  */
 interface PlacesDataSource {
 
-    fun fetchPlaces(location: Location) : Observable<AutocompletePredictionBufferResponse>
+    fun fetchPlaces(location: Location) : Observable<List<Place>>
 }

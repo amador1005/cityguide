@@ -1,44 +1,65 @@
 package com.yuchen.cityguide.data.remote
 
-import android.content.Context
 import android.location.Location
 import android.util.Log
-import com.google.android.gms.location.places.AutocompletePredictionBufferResponse
-import com.google.android.gms.location.places.GeoDataClient
-import com.google.android.gms.location.places.Places
-import com.google.android.gms.tasks.Tasks
-import com.yuchen.cityguide.Utilities
 import com.yuchen.cityguide.data.PlacesDataSource
 import io.reactivex.Observable
-import io.reactivex.Observable.fromIterable
-import java.util.concurrent.TimeUnit
+import com.yuchen.cityguide.data.Place
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
+
 
 /**
  * Created by yuchen on 1/5/18.
  */
 class PlacesRemoteDataSource : PlacesDataSource {
 
-    private val mGeoDataClient: GeoDataClient
+    private val mService: PlaceService
 
-    constructor(context: Context) {
-        mGeoDataClient = Places.getGeoDataClient(context, null);
+    constructor() {
+        val retrofit = Retrofit.Builder()
+                .addCallAdapterFactory(
+                        RxJava2CallAdapterFactory.create())
+                .addConverterFactory(
+                        GsonConverterFactory.create())
+                .baseUrl("https://maps.googleapis.com")
+                .build()
+        mService = retrofit.create(PlaceService::class.java)
 
     }
 
-    override fun fetchPlaces(location: Location): Observable<AutocompletePredictionBufferResponse> {
+    private fun fetchPlaces(type: String, location: Location): List<Place> {
+        val location = "%f,%f".format(location.latitude,
+                location.longitude)
+        Log.d(TAG, "location $location")
+        return mService
+                .fetchPlaces(types = type, key = KEY, location = location)
+                .flatMap { response ->
+                    Observable.fromIterable(response.results)
+                            .doOnNext { place -> place.type = type }
+                }.toList().blockingGet()
+
+    }
+
+    override fun fetchPlaces(location: Location): Observable<List<Place>> {
         return Observable.fromCallable {
-            val task = mGeoDataClient.getAutocompletePredictions("restaurant", Utilities
-                    .getLatLngBounds(location.latitude, location.longitude), null)
-            Tasks.await(task, 60, TimeUnit.SECONDS)
-            val predictions = task.result
-            Log.i(TAG, "Query completed. Received " + predictions.getCount()
-                    + " predictions.")
-            predictions
+            val cafeList = fetchPlaces("cafe", location)
+            Log.v(TAG, "cafeList $cafeList")
+            val barList = fetchPlaces("bar", location)
+            val restaurantList = fetchPlaces("restaurant", location)
+
+            val combinedList = mutableListOf<Place>()
+            combinedList.addAll(cafeList)
+            combinedList.addAll(barList)
+            combinedList.addAll(restaurantList)
+            combinedList
         }
     }
 
 
     companion object {
         private val TAG = "PlacesRemoteDataSource"
+        private val KEY = "AIzaSyA670Z60cbgYkmfn4J4CH129btHEXHjEIY"
     }
 }

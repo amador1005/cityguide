@@ -15,6 +15,11 @@ import com.yuchen.cityguide.data.PlacesRepository
 import com.yuchen.cityguide.data.remote.PlacesRemoteDataSource
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import android.graphics.Typeface
+import android.text.style.StyleSpan
+import android.text.style.CharacterStyle
+
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -25,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        PlacesRepository.registerDataSource(PlacesRemoteDataSource(applicationContext))
+        PlacesRepository.registerDataSource(PlacesRemoteDataSource())
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -50,7 +55,22 @@ class MainActivity : AppCompatActivity() {
                         PlacesRepository.getPlaces(location)
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe()
+                                .subscribe(     // onNext
+                                        { response ->
+                                            response.forEach {
+                                                Log.v(TAG, "name ${it.name}, type ${it.type}, " +
+                                                        "rating ${it.rating}")
+
+                                            }
+                                            //processTasks(tasks)
+                                            //mTasksView.setLoadingIndicator(false)
+                                        },
+                                        // onError
+                                        { throwable -> run {
+                                            throwable.stackTrace
+                                            Log.v(TAG, "there is error " +
+                                                "$throwable")} })
+
 
 
                     }

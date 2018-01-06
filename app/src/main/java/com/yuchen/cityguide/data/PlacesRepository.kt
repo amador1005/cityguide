@@ -1,7 +1,7 @@
 package com.yuchen.cityguide.data
 
 import android.location.Location
-import com.google.android.gms.location.places.AutocompletePredictionBufferResponse
+import android.util.Log
 import io.reactivex.Observable
 import java.util.LinkedHashMap
 
@@ -10,9 +10,11 @@ import java.util.LinkedHashMap
  */
 object PlacesRepository {
 
+    private val TAG = "PlacesRepository"
+
     private var mPlacesRemoteDataSource: PlacesDataSource? = null
 
-    internal var mCachedPlaces: MutableMap<Location, List<AutocompletePredictionBufferResponse>>? = null
+    internal var mCachedPlaces: MutableMap<Location, List<Place>>? = null
 
     private var mCacheIsDirty = false
 
@@ -20,17 +22,19 @@ object PlacesRepository {
         mPlacesRemoteDataSource = checkNotNull(placesRemoteDataSource)
     }
 
-    fun getPlaces(location: Location): Observable<AutocompletePredictionBufferResponse> {
+    fun getPlaces(location: Location): Observable<List<Place>> {
         checkNotNull(mPlacesRemoteDataSource)
         checkNotNull(location)
 
         if (!mCacheIsDirty) {
             mCachedPlaces?.let {
                 if (it.contains(location)) {
-                    return Observable.fromIterable(it[location])
+                    Log.d(TAG, "cache hit")
+                    return Observable.fromCallable { it[location] }
                 }
             }
         }
+        Log.d(TAG, "cache missed")
         return getPlacesFromRemoteDataSource(location)
     }
 
@@ -39,18 +43,15 @@ object PlacesRepository {
         mCacheIsDirty = true
     }
 
-    private fun getPlacesFromRemoteDataSource(location: Location): Observable<AutocompletePredictionBufferResponse> {
-        val predictions = mutableListOf<AutocompletePredictionBufferResponse>()
+    private fun getPlacesFromRemoteDataSource(location: Location): Observable<List<Place>> {
         return mPlacesRemoteDataSource!!.fetchPlaces(location)
                 .doOnNext {
-                    predictions.add(it)
+                    refreshCache(location, it.toList())
                 }
-                .doOnComplete {
-                    refreshCache(location, predictions)
-                }
+
     }
 
-    private fun refreshCache(location: Location, prediction: List<AutocompletePredictionBufferResponse>) {
+    private fun refreshCache(location: Location, prediction: List<Place>) {
         if (mCachedPlaces == null) {
             mCachedPlaces = LinkedHashMap()
         }

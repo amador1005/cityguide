@@ -12,7 +12,7 @@ class Utilities {
 
     companion object {
         fun getLatLngBounds(latitude: Double, longitude: Double): LatLngBounds {
-            val radiusDegrees = 1.0
+            val radiusDegrees = 0.1
             val northEast = LatLng(latitude + radiusDegrees, longitude + radiusDegrees)
             val southWest = LatLng(latitude - radiusDegrees, longitude - radiusDegrees)
             return LatLngBounds.builder()
