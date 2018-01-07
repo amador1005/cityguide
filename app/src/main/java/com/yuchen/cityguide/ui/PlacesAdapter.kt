@@ -38,6 +38,7 @@ class PlacesAdapter(
 
         with(binding) {
             place = places[position]
+
             executePendingBindings()
         }
 

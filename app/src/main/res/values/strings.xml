@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">City Guide</string>
+    <string name="app_name">City guide</string>
     <string name="label_bars">Bar</string>
     <string name="label_bistros">Bistro</string>
     <string name="label_cafés">Café</string>

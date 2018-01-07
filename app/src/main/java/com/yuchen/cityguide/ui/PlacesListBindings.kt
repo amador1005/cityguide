@@ -4,7 +4,7 @@ import android.databinding.BindingAdapter
 import android.widget.ListView
 import com.yuchen.cityguide.data.Place
 
-object TasksListBindings {
+object PlacesListBindings {
 
     @BindingAdapter("app:items")
     @JvmStatic fun setItems(listView: ListView, items: List<Place>) {

@@ -5,7 +5,7 @@ package com.yuchen.cityguide.data
  */
 
 data class Place(var name: String, var geometry: Geometry, var rating: Float, var type:
-PlaceType)
+PlaceType, var distance: String  = "")
 
 data class Geometry(var location: Location)
 

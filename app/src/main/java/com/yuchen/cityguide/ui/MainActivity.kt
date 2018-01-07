@@ -16,6 +16,8 @@ import com.yuchen.cityguide.data.PlacesRepository
 import com.yuchen.cityguide.data.remote.PlacesRemoteDataSource
 import com.yuchen.cityguide.databinding.ActivityMainBinding
 import android.arch.lifecycle.ViewModelProviders
+import android.support.v7.widget.Toolbar
+import android.view.View
 
 
 class MainActivity : AppCompatActivity() {
@@ -29,6 +31,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         viewDataBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        setupToolbar()
+        setupRefreshLayout()
+
         PlacesRepository.registerDataSource(PlacesRemoteDataSource())
         val factory = PlacesViewModel.Factory(
                 getApplication(), PlacesRepository)
@@ -75,6 +80,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupToolbar() {
+        setSupportActionBar(viewDataBinding.toolbar)
+        viewDataBinding.toolbar.setNavigationIcon(R.drawable.ic_menu)
+    }
+
     private fun setupListAdapter() {
         val viewModel = viewDataBinding.viewmodel
         if (viewModel != null) {
@@ -84,19 +94,19 @@ class MainActivity : AppCompatActivity() {
             Log.w(TAG, "ViewModel not initialized when attempting to set up adapter.")
         }
     }
-/*
+
     private fun setupRefreshLayout() {
         viewDataBinding.refreshLayout.run {
             setColorSchemeColors(
-                    ContextCompat.getColor(activity, R.color.colorPrimary),
-                    ContextCompat.getColor(activity, R.color.colorAccent),
-                    ContextCompat.getColor(activity, R.color.colorPrimaryDark)
+                    ContextCompat.getColor(context, R.color.red),
+                    ContextCompat.getColor(context, R.color.blue),
+                    ContextCompat.getColor(context, R.color.green),
+                    ContextCompat.getColor(context, R.color.yellow)
             )
-            // Set the scrolling view in the custom SwipeRefreshLayout.
-            //scrollUpChild = viewDataBinding.tasksList
+            scrollUpChild = viewDataBinding.placesList
         }
     }
-*/
+
 
     companion object {
         private val TAG = "MainActivity"
