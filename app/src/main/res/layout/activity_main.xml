@@ -30,12 +30,29 @@
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                 app:theme="@style/Toolbar"
                 app:contentInsetStartWithNavigation="0dp" />
+
+            <android.support.design.widget.TabLayout
+                android:id="@+id/tabs"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@android:color/transparent"
+                app:layout_collapseMode="pin"
+                app:tabContentStart="0dp"
+                app:tabGravity="fill"
+                app:tabIndicatorColor="@android:color/white"
+                app:tabIndicatorHeight="2dp"
+                app:tabMaxWidth="0dp"
+                app:tabMode="fixed"
+                app:tabSelectedTextColor="@color/yellow"
+                app:tabTextColor="@android:color/white" />
+
         </android.support.design.widget.AppBarLayout>
 
         <com.yuchen.cityguide.ui.ScrollChildSwipeRefreshLayout
             android:id="@+id/refresh_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            app:refreshing="@{viewmodel.dataLoading}">
 
             <RelativeLayout
                 android:id="@+id/container"

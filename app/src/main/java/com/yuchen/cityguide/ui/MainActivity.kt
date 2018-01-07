@@ -16,15 +16,16 @@ import com.yuchen.cityguide.data.PlacesRepository
 import com.yuchen.cityguide.data.remote.PlacesRemoteDataSource
 import com.yuchen.cityguide.databinding.ActivityMainBinding
 import android.arch.lifecycle.ViewModelProviders
-import android.support.v7.widget.Toolbar
-import android.view.View
+import android.location.Location
+import android.support.v4.widget.SwipeRefreshLayout
 
 
-class MainActivity : AppCompatActivity() {
-
+class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var viewDataBinding: ActivityMainBinding
     private lateinit var listAdapter: PlacesAdapter
+    private lateinit var viewModel: PlacesViewModel
+    private var lastLocation: PlacesRepository.PlaceLocation? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,13 +33,15 @@ class MainActivity : AppCompatActivity() {
 
         viewDataBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         setupToolbar()
+        setupTabs()
         setupRefreshLayout()
 
         PlacesRepository.registerDataSource(PlacesRemoteDataSource())
         val factory = PlacesViewModel.Factory(
                 getApplication(), PlacesRepository)
-        viewDataBinding.viewmodel = ViewModelProviders.of(this, factory).get(PlacesViewModel::class
+        viewModel = ViewModelProviders.of(this, factory).get(PlacesViewModel::class
                 .java!!)
+        viewDataBinding.viewmodel = viewModel
         setupListAdapter()
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -59,7 +62,8 @@ class MainActivity : AppCompatActivity() {
                 .addOnSuccessListener(this) { location ->
                     location?.let {
                         Log.v(TAG, "location $location")
-                        viewDataBinding.viewmodel?.loadPlaces(false, location)
+                        lastLocation = PlacesRepository.PlaceLocation(it)
+                        viewModel?.loadPlaces(false, false, lastLocation!!)
                     }
                 }
     }
@@ -85,6 +89,15 @@ class MainActivity : AppCompatActivity() {
         viewDataBinding.toolbar.setNavigationIcon(R.drawable.ic_menu)
     }
 
+    private fun setupTabs() {
+        viewDataBinding.tabs.run {
+            addTab(this.newTab().setText(getText(R.string.label_bars)))
+            addTab(this.newTab().setText(getText(R.string.label_bistros)))
+            addTab(this.newTab().setText(getText(R.string.label_cafés)))
+        }
+
+    }
+
     private fun setupListAdapter() {
         val viewModel = viewDataBinding.viewmodel
         if (viewModel != null) {
@@ -96,6 +109,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRefreshLayout() {
+        val listener = this
         viewDataBinding.refreshLayout.run {
             setColorSchemeColors(
                     ContextCompat.getColor(context, R.color.red),
@@ -104,9 +118,18 @@ class MainActivity : AppCompatActivity() {
                     ContextCompat.getColor(context, R.color.yellow)
             )
             scrollUpChild = viewDataBinding.placesList
+            setOnRefreshListener(listener)
         }
     }
 
+    override fun onRefresh() {
+        Log.v(TAG, "onRefresh, lastLocation $lastLocation")
+        if (lastLocation != null) {
+            viewModel.loadPlaces(true, true, lastLocation!!)
+        } else {
+            viewModel.dataLoading.set(false)
+        }
+    }
 
     companion object {
         private val TAG = "MainActivity"

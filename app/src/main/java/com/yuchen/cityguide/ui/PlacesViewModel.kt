@@ -7,7 +7,6 @@ import android.databinding.ObservableArrayList
 import android.databinding.ObservableBoolean
 import android.databinding.ObservableField
 import android.databinding.ObservableList
-import android.location.Location
 import android.util.Log
 import com.yuchen.cityguide.R
 import com.yuchen.cityguide.data.Place
@@ -40,14 +39,6 @@ class PlacesViewModel(
             updateFiltering()
         }
 
-    fun start(location: Location) {
-        loadPlaces(false, location)
-    }
-
-    fun loadPlaces(forceUpdate: Boolean, location: Location) {
-        loadPlaces(forceUpdate, true, location)
-    }
-
     fun updateFiltering() {
         when (currentFiltering) {
             PlaceType.BARS -> {
@@ -67,7 +58,7 @@ class PlacesViewModel(
         currentFilteringLabel.set(context.getString(filteringLabelString))
     }
 
-    private fun loadPlaces(forceUpdate: Boolean, showLoadingUI: Boolean, location: Location) {
+    fun loadPlaces(forceUpdate: Boolean, showLoadingUI: Boolean, location: PlacesRepository.PlaceLocation) {
         if (showLoadingUI) {
             dataLoading.set(true)
         }

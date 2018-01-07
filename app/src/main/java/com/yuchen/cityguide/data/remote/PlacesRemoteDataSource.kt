@@ -9,6 +9,10 @@ import com.yuchen.cityguide.data.PlaceType
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+
+
 
 
 /**
@@ -19,7 +23,12 @@ class PlacesRemoteDataSource : PlacesDataSource {
     private val placeService: PlaceService
 
     constructor() {
+        val interceptor = HttpLoggingInterceptor()
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC)
+        val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
+
         val retrofit = Retrofit.Builder()
+                .client(client)
                 .addCallAdapterFactory(
                         RxJava2CallAdapterFactory.create())
                 .addConverterFactory(

@@ -4,6 +4,7 @@ import android.location.Location
 import android.util.Log
 import io.reactivex.Observable
 import java.util.LinkedHashMap
+import kotlin.math.log
 
 /**
  * Created by yuchen on 1/5/18.
@@ -14,7 +15,7 @@ object PlacesRepository {
 
     private var mPlacesRemoteDataSource: PlacesDataSource? = null
 
-    internal var mCachedPlaces: MutableMap<Location, List<Place>>? = null
+    internal var mCachedPlaces: MutableMap<PlaceLocation, List<Place>>? = null
 
     private var mCacheIsDirty = false
 
@@ -22,9 +23,11 @@ object PlacesRepository {
         mPlacesRemoteDataSource = checkNotNull(placesRemoteDataSource)
     }
 
-    fun getPlaces(location: Location): Observable<List<Place>> {
+    fun getPlaces(location: PlaceLocation): Observable<List<Place>> {
         checkNotNull(mPlacesRemoteDataSource)
         checkNotNull(location)
+
+        Log.d(TAG, "mCacheIsDirty $mCacheIsDirty, mCachedPlaces $mCachedPlaces ")
 
         if (!mCacheIsDirty) {
             mCachedPlaces?.let {
@@ -43,7 +46,7 @@ object PlacesRepository {
         mCacheIsDirty = true
     }
 
-    private fun getPlacesFromRemoteDataSource(location: Location): Observable<List<Place>> {
+    private fun getPlacesFromRemoteDataSource(location: PlaceLocation): Observable<List<Place>> {
         return mPlacesRemoteDataSource!!.fetchPlaces(location)
                 .doOnNext {
                     refreshCache(location, it.toList())
@@ -51,14 +54,29 @@ object PlacesRepository {
 
     }
 
-    private fun refreshCache(location: Location, prediction: List<Place>) {
+    private fun refreshCache(location: PlaceLocation, prediction: List<Place>) {
         if (mCachedPlaces == null) {
             mCachedPlaces = LinkedHashMap()
         }
         mCachedPlaces!!.let {
             it.clear()
-            it.put(location, prediction)
+            it.put(PlaceLocation(location), prediction)
             mCacheIsDirty = false
         }
     }
+
+    class PlaceLocation(l: Location) : Location(l) {
+
+        override fun equals(obj: Any?): Boolean {
+            if (obj != null && obj is Location) {
+                return longitude == obj.longitude && latitude == obj.latitude
+            }
+            return false
+        }
+
+        override fun hashCode(): Int {
+            return (latitude.toString() + longitude.toString()).hashCode()
+        }
+    }
 }
+

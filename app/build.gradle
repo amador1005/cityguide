@@ -43,6 +43,7 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:2.3.0"
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
 
     compile "android.arch.lifecycle:extensions:$arch_lifecycle_version"
     annotationProcessor "android.arch.lifecycle:compiler:$arch_lifecycle_version"
