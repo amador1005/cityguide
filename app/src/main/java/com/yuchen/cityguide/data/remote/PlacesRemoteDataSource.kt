@@ -18,7 +18,7 @@ import okhttp3.logging.HttpLoggingInterceptor
  */
 class PlacesRemoteDataSource : PlacesDataSource {
 
-    private val mlaceService: PlaceService
+    private val mPlaceService: PlaceService
 
     constructor() {
         val interceptor = HttpLoggingInterceptor()
@@ -33,19 +33,21 @@ class PlacesRemoteDataSource : PlacesDataSource {
                         GsonConverterFactory.create())
                 .baseUrl("https://maps.googleapis.com")
                 .build()
-        mlaceService = retrofit.create(PlaceService::class.java)
+        mPlaceService = retrofit.create(PlaceService::class.java)
 
     }
 
     private fun fetchPlaces(type: String, placeType: PlaceType, location: Location): List<Place> {
-        val location = "%f,%f".format(location.latitude,
+        val locationStr = "%f,%f".format(location.latitude,
                 location.longitude)
         Log.d(TAG, "location $location")
-        return mlaceService
-                .fetchPlaces(types = type, key = KEY, location = location)
+        return mPlaceService
+                .fetchPlaces(types = type, key = KEY, location = locationStr)
                 .flatMap { response ->
                     Observable.fromIterable(response.results)
-                            .doOnNext { place -> place.type = placeType }
+                            .doOnNext { place ->
+                                place.type = placeType
+                            }
                 }.toList().blockingGet()
 
     }
@@ -59,6 +61,17 @@ class PlacesRemoteDataSource : PlacesDataSource {
             combinedList.addAll(cafeList)
             combinedList.addAll(barList)
             combinedList.addAll(restaurantList)
+
+            val destinations = combinedList.map { "%f,%f".format(it.geometry.location.lat,
+                    it.geometry.location.lng) }.toList().joinToString("|")
+            val locationStr = "%f,%f".format(location.latitude,
+                    location.longitude)
+            val distanceResponse = mPlaceService.getDistances(locationStr, destinations,
+                    KEY).blockingSingle()
+            for (i in 0..combinedList.size - 1) {
+                combinedList[i].distance = distanceResponse.rows[0].elements[i]?.distance?.text
+                        ?: ""
+            }
             combinedList
         }
     }
