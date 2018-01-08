@@ -282,7 +282,7 @@ class SlidingMenu @JvmOverloads constructor(context: Context, attrs: AttributeSe
         private val DEFAULT_DURATION = 300
         private val DEFAULT_TEXT_COLOR = Color.parseColor("#999999")
         private val DEFAULT_TEXT_SELECTED_COLOR = Color.parseColor("#FCB54C")
-        private val TAG = "SlidingMenu"
+        private val TAG = javaClass.simpleName
 
     }
 

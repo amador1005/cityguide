@@ -13,14 +13,12 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
 
-
-
 /**
  * Created by yuchen on 1/5/18.
  */
 class PlacesRemoteDataSource : PlacesDataSource {
 
-    private val placeService: PlaceService
+    private val mlaceService: PlaceService
 
     constructor() {
         val interceptor = HttpLoggingInterceptor()
@@ -35,7 +33,7 @@ class PlacesRemoteDataSource : PlacesDataSource {
                         GsonConverterFactory.create())
                 .baseUrl("https://maps.googleapis.com")
                 .build()
-        placeService = retrofit.create(PlaceService::class.java)
+        mlaceService = retrofit.create(PlaceService::class.java)
 
     }
 
@@ -43,7 +41,7 @@ class PlacesRemoteDataSource : PlacesDataSource {
         val location = "%f,%f".format(location.latitude,
                 location.longitude)
         Log.d(TAG, "location $location")
-        return placeService
+        return mlaceService
                 .fetchPlaces(types = type, key = KEY, location = location)
                 .flatMap { response ->
                     Observable.fromIterable(response.results)
@@ -67,7 +65,7 @@ class PlacesRemoteDataSource : PlacesDataSource {
 
 
     companion object {
-        private val TAG = "PlacesRemoteDataSource"
+        private val TAG = javaClass.simpleName
         private val KEY = "AIzaSyA670Z60cbgYkmfn4J4CH129btHEXHjEIY"
     }
 }

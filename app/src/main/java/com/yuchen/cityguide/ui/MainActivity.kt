@@ -22,47 +22,52 @@ import com.yuchen.cityguide.view.SlidingMenu
 
 
 class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var viewDataBinding: ActivityMainBinding
-    private lateinit var listAdapter: PlacesAdapter
-    private lateinit var viewModel: PlacesViewModel
-    private var lastLocation: PlacesRepository.PlaceLocation? = null
-
+    private lateinit var mFusedLocationClient: FusedLocationProviderClient
+    private lateinit var mViewDataBinding: ActivityMainBinding
+    private lateinit var mListAdapter: PlacesAdapter
+    private lateinit var mViewModel: PlacesViewModel
+    private var mLastLocation: PlacesRepository.PlaceLocation? = null
+    private var mLastShowLoadingUI = false;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewDataBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        mViewDataBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         setupToolbar()
         setupSlidingMenu()
         setupRefreshLayout()
-        setupViewModel()
-        setupListAdapter()
-        getLastLocation()
+        setupmViewModel()
+        setupmListAdapter()
     }
 
-    private fun getLastLocation() {
+    override fun onResume() {
+        super.onResume()
+        getLocation(false)
+    }
+
+    private fun getLocation(showLoadingUI: Boolean) {
+        Log.d(TAG, "getLocation")
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-
+            mLastShowLoadingUI = showLoadingUI
             ActivityCompat.requestPermissions(this,
                     arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
                     PERMISSION_REQUEST);
 
         } else {
-            loadPlacesNearLastLocation()
+            loadPlacesNearLocation(showLoadingUI)
         }
     }
 
-    private fun loadPlacesNearLastLocation() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        fusedLocationClient.lastLocation
+    private fun loadPlacesNearLocation(showLoadingUI: Boolean) {
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mFusedLocationClient.lastLocation
                 .addOnSuccessListener(this) { location ->
                     location?.let {
                         Log.v(TAG, "location $location")
-                        lastLocation = PlacesRepository.PlaceLocation(it)
-                        viewModel?.loadPlaces(false, false, lastLocation!!)
+                        mLastLocation = PlacesRepository.PlaceLocation(it)
+                        mViewModel?.loadPlaces(showLoadingUI, showLoadingUI, mLastLocation!!)
                     }
                 }
     }
@@ -72,7 +77,7 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
         when (requestCode) {
             PERMISSION_REQUEST -> {
                 if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    loadPlacesNearLastLocation()
+                    loadPlacesNearLocation(mLastShowLoadingUI)
                 } else {
                     Toast.makeText(this, "Location Permission is required for the app to work",
                             Toast
@@ -83,31 +88,31 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
         }
     }
 
-    private fun setupViewModel() {
+    private fun setupmViewModel() {
         PlacesRepository.registerDataSource(PlacesRemoteDataSource())
         val factory = PlacesViewModel.Factory(
                 getApplication(), PlacesRepository)
-        viewModel = ViewModelProviders.of(this, factory).get(PlacesViewModel::class
+        mViewModel = ViewModelProviders.of(this, factory).get(PlacesViewModel::class
                 .java!!)
-        viewDataBinding.viewmodel = viewModel
+        mViewDataBinding.viewmodel = mViewModel
     }
 
     private fun setupSlidingMenu() {
         val data = arrayOf(getString(R.string.label_bars), getString(R.string.label_bistros),
                 getString(R.string.label_cafés))
-        with(viewDataBinding.slidingMenu) {
+        with(mViewDataBinding.slidingMenu) {
             setData(data)
             setSelect(0)
             setOnMenuSelectedListener(object : SlidingMenu.OnMenuSelectedListener {
                 override fun onSelect(position: Int) {
-                    lastLocation?.let {
-                        viewModel.currentFiltering =
+                    mLastLocation?.let {
+                        mViewModel.currentFiltering =
                                 when (position) {
                                     0 -> PlaceType.BARS
                                     1 -> PlaceType.BISTROS
                                     else -> PlaceType.CAFES
                                 }
-                        viewModel.loadPlaces(false, false, it)
+                        mViewModel.loadPlaces(false, false, it)
                     }
                 }
             })
@@ -115,40 +120,35 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(viewDataBinding.toolbar)
-        viewDataBinding.toolbar.setNavigationIcon(R.drawable.ic_menu)
+        setSupportActionBar(mViewDataBinding.toolbar)
+        mViewDataBinding.toolbar.setNavigationIcon(R.drawable.ic_menu)
     }
 
-    private fun setupListAdapter() {
-        listAdapter = PlacesAdapter(ArrayList(0), viewModel)
-        viewDataBinding.placesList.adapter = listAdapter
+    private fun setupmListAdapter() {
+        mListAdapter = PlacesAdapter(ArrayList(0), mViewModel)
+        mViewDataBinding.placesList.adapter = mListAdapter
     }
 
     private fun setupRefreshLayout() {
         val listener = this
-        viewDataBinding.refreshLayout.run {
+        mViewDataBinding.refreshLayout.run {
             setColorSchemeColors(
                     ContextCompat.getColor(context, R.color.red),
                     ContextCompat.getColor(context, R.color.blue),
                     ContextCompat.getColor(context, R.color.green),
                     ContextCompat.getColor(context, R.color.yellow)
             )
-            scrollUpChild = viewDataBinding.placesList
+            scrollUpChild = mViewDataBinding.placesList
             setOnRefreshListener(listener)
         }
     }
 
     override fun onRefresh() {
-        Log.v(TAG, "onRefresh, lastLocation $lastLocation")
-        if (lastLocation != null) {
-            viewModel.loadPlaces(true, true, lastLocation!!)
-        } else {
-            viewModel.dataLoading.set(false)
-        }
+        getLocation(true)
     }
 
     companion object {
-        private val TAG = "MainActivity"
+        private val TAG = javaClass.simpleName
         private val PERMISSION_REQUEST = 12421;
     }
 }

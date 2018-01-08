@@ -80,7 +80,7 @@ class PlacesViewModel(
     }
 
     companion object {
-        private val TAG = "PlacesViewModel"
+        private val TAG = javaClass.simpleName
     }
 
 

@@ -7,7 +7,7 @@ import java.util.LinkedHashMap
 
 object PlacesRepository {
 
-    private val TAG = "PlacesRepository"
+    private val TAG = javaClass.simpleName
 
     private var mPlacesRemoteDataSource: PlacesDataSource? = null
 
