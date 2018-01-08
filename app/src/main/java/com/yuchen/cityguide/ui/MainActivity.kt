@@ -16,8 +16,9 @@ import com.yuchen.cityguide.data.PlacesRepository
 import com.yuchen.cityguide.data.remote.PlacesRemoteDataSource
 import com.yuchen.cityguide.databinding.ActivityMainBinding
 import android.arch.lifecycle.ViewModelProviders
-import android.location.Location
 import android.support.v4.widget.SwipeRefreshLayout
+import com.yuchen.cityguide.data.PlaceType
+import com.yuchen.cityguide.view.SlidingMenu
 
 
 class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
@@ -33,16 +34,14 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
 
         viewDataBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         setupToolbar()
-        setupTabs()
+        setupSlidingMenu()
         setupRefreshLayout()
-
-        PlacesRepository.registerDataSource(PlacesRemoteDataSource())
-        val factory = PlacesViewModel.Factory(
-                getApplication(), PlacesRepository)
-        viewModel = ViewModelProviders.of(this, factory).get(PlacesViewModel::class
-                .java!!)
-        viewDataBinding.viewmodel = viewModel
+        setupViewModel()
         setupListAdapter()
+        getLastLocation()
+    }
+
+    private fun getLastLocation() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -52,11 +51,11 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
                     PERMISSION_REQUEST);
 
         } else {
-            getLastLocation()
+            loadPlacesNearLastLocation()
         }
     }
 
-    private fun getLastLocation() {
+    private fun loadPlacesNearLastLocation() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.lastLocation
                 .addOnSuccessListener(this) { location ->
@@ -73,7 +72,7 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
         when (requestCode) {
             PERMISSION_REQUEST -> {
                 if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getLastLocation()
+                    loadPlacesNearLastLocation()
                 } else {
                     Toast.makeText(this, "Location Permission is required for the app to work",
                             Toast
@@ -84,28 +83,45 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
         }
     }
 
+    private fun setupViewModel() {
+        PlacesRepository.registerDataSource(PlacesRemoteDataSource())
+        val factory = PlacesViewModel.Factory(
+                getApplication(), PlacesRepository)
+        viewModel = ViewModelProviders.of(this, factory).get(PlacesViewModel::class
+                .java!!)
+        viewDataBinding.viewmodel = viewModel
+    }
+
+    private fun setupSlidingMenu() {
+        val data = arrayOf(getString(R.string.label_bars), getString(R.string.label_bistros),
+                getString(R.string.label_cafés))
+        with(viewDataBinding.slidingMenu) {
+            setData(data)
+            setSelect(0)
+            setOnMenuSelectedListener(object : SlidingMenu.OnMenuSelectedListener {
+                override fun onSelect(position: Int) {
+                    lastLocation?.let {
+                        viewModel.currentFiltering =
+                                when (position) {
+                                    0 -> PlaceType.BARS
+                                    1 -> PlaceType.BISTROS
+                                    else -> PlaceType.CAFES
+                                }
+                        viewModel.loadPlaces(false, false, it)
+                    }
+                }
+            })
+        }
+    }
+
     private fun setupToolbar() {
         setSupportActionBar(viewDataBinding.toolbar)
         viewDataBinding.toolbar.setNavigationIcon(R.drawable.ic_menu)
     }
 
-    private fun setupTabs() {
-        viewDataBinding.tabs.run {
-            addTab(this.newTab().setText(getText(R.string.label_bars)))
-            addTab(this.newTab().setText(getText(R.string.label_bistros)))
-            addTab(this.newTab().setText(getText(R.string.label_cafés)))
-        }
-
-    }
-
     private fun setupListAdapter() {
-        val viewModel = viewDataBinding.viewmodel
-        if (viewModel != null) {
-            listAdapter = PlacesAdapter(ArrayList(0), viewModel)
-            viewDataBinding.placesList.adapter = listAdapter
-        } else {
-            Log.w(TAG, "ViewModel not initialized when attempting to set up adapter.")
-        }
+        listAdapter = PlacesAdapter(ArrayList(0), viewModel)
+        viewDataBinding.placesList.adapter = listAdapter
     }
 
     private fun setupRefreshLayout() {

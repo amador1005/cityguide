@@ -4,11 +4,7 @@ import android.location.Location
 import android.util.Log
 import io.reactivex.Observable
 import java.util.LinkedHashMap
-import kotlin.math.log
 
-/**
- * Created by yuchen on 1/5/18.
- */
 object PlacesRepository {
 
     private val TAG = "PlacesRepository"

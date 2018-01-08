@@ -2,13 +2,10 @@ package com.yuchen.cityguide.ui
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
-import android.content.Context
 import android.databinding.ObservableArrayList
 import android.databinding.ObservableBoolean
-import android.databinding.ObservableField
 import android.databinding.ObservableList
 import android.util.Log
-import com.yuchen.cityguide.R
 import com.yuchen.cityguide.data.Place
 import com.yuchen.cityguide.data.PlaceType
 import com.yuchen.cityguide.data.PlacesRepository
@@ -30,33 +27,9 @@ class PlacesViewModel(
 
     val items: ObservableList<Place> = ObservableArrayList()
     val dataLoading = ObservableBoolean(false)
-    val currentFilteringLabel = ObservableField<String>()
     val empty = ObservableBoolean(false)
 
     var currentFiltering = PlaceType.BARS
-        set(value) {
-            field = value
-            updateFiltering()
-        }
-
-    fun updateFiltering() {
-        when (currentFiltering) {
-            PlaceType.BARS -> {
-                setFilter(R.string.label_bars)
-            }
-            PlaceType.BISTROS -> {
-                setFilter(R.string.label_bistros)
-            }
-            PlaceType.CAFES -> {
-                setFilter(R.string.label_cafés)
-            }
-        }
-    }
-
-    private fun setFilter(filteringLabelString: Int) {
-        val context = getApplication() as Context
-        currentFilteringLabel.set(context.getString(filteringLabelString))
-    }
 
     fun loadPlaces(forceUpdate: Boolean, showLoadingUI: Boolean, location: PlacesRepository.PlaceLocation) {
         if (showLoadingUI) {
@@ -113,7 +86,6 @@ class PlacesViewModel(
 
     class Factory(private val application: Application, private val placesRepository: PlacesRepository) : ViewModelProvider
     .NewInstanceFactory() {
-
 
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
 

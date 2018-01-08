@@ -31,20 +31,21 @@
                 app:theme="@style/Toolbar"
                 app:contentInsetStartWithNavigation="0dp" />
 
-            <android.support.design.widget.TabLayout
-                android:id="@+id/tabs"
+            <com.yuchen.cityguide.view.SlidingMenu
+                android:id="@+id/sliding_menu"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@android:color/transparent"
-                app:layout_collapseMode="pin"
-                app:tabContentStart="0dp"
-                app:tabGravity="fill"
-                app:tabIndicatorColor="@android:color/white"
-                app:tabIndicatorHeight="2dp"
-                app:tabMaxWidth="0dp"
-                app:tabMode="fixed"
-                app:tabSelectedTextColor="@color/yellow"
-                app:tabTextColor="@android:color/white" />
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                app:sm_duration="500"
+                app:sm_height="48dp"
+                app:sm_textColor="#FFF"
+                app:sm_textSelectedColor="@color/yellow"
+                app:sm_textMargin="10dp"
+                app:sm_textSize="18sp" >
+
+
+            </com.yuchen.cityguide.view.SlidingMenu>
 
         </android.support.design.widget.AppBarLayout>
 
@@ -77,7 +78,6 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/noPlaces"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
@@ -86,7 +86,6 @@
 
 
                     <TextView
-                        android:id="@+id/noPlacesMain"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"

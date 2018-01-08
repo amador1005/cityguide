@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SlidingMenu">
+        <attr name="sm_height" format="dimension" />
+        <attr name="sm_background" format="reference" />
+        <attr name="sm_cursor" format="reference" />
+        <attr name="sm_textColor" format="color" />
+        <attr name="sm_textSelectedColor" format="color" />
+        <attr name="sm_textSize" format="dimension" />
+        <attr name="sm_textMargin" format="dimension" />
+        <attr name="sm_duration" format="integer" />
+    </declare-styleable>
+</resources>
