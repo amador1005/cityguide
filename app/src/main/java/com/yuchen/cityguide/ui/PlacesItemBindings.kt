@@ -15,9 +15,9 @@ object PlacesItemBindings {
     @JvmStatic
     fun setImageResource(imageView: ImageView, place: Place) {
         when (place.type) {
-            PlaceType.BARS -> imageView.setImageResource(R.drawable.ic_bar)
-            PlaceType.CAFES -> imageView.setImageResource(R.drawable.ic_cafe)
-            PlaceType.BISTROS -> imageView.setImageResource(R.drawable.ic_bistro)
+            PlaceType.BAR -> imageView.setImageResource(R.drawable.ic_bar)
+            PlaceType.CAFE -> imageView.setImageResource(R.drawable.ic_cafe)
+            PlaceType.BISTRO -> imageView.setImageResource(R.drawable.ic_bistro)
         }
     }
 }

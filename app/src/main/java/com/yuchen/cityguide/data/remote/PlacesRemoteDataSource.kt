@@ -54,9 +54,9 @@ class PlacesRemoteDataSource : PlacesDataSource {
 
     override fun fetchPlaces(location: Location): Observable<List<Place>> {
         return Observable.fromCallable {
-            val cafeList = fetchPlaces("cafe", PlaceType.CAFES, location)
-            val barList = fetchPlaces("bar", PlaceType.BARS, location)
-            val restaurantList = fetchPlaces("restaurant", PlaceType.BISTROS, location)
+            val cafeList = fetchPlaces("cafe", PlaceType.CAFE, location)
+            val barList = fetchPlaces("bar", PlaceType.BAR, location)
+            val restaurantList = fetchPlaces("restaurant", PlaceType.BISTRO, location)
             val combinedList = mutableListOf<Place>()
             combinedList.addAll(cafeList)
             combinedList.addAll(barList)

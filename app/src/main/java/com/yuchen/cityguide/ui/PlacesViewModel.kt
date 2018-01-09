@@ -13,6 +13,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
+import io.reactivex.Scheduler
 
 
 /**
@@ -20,7 +21,9 @@ import android.arch.lifecycle.ViewModelProvider
  */
 class PlacesViewModel(
         context: Application,
-        private val placesRepository: PlacesRepository
+        private val placesRepository: PlacesRepository,
+        private val subscribeOn: Scheduler,
+        private val observeOn: Scheduler
 ) : AndroidViewModel(context) {
 
     private val isDataLoadingError = ObservableBoolean(false)
@@ -29,7 +32,7 @@ class PlacesViewModel(
     val dataLoading = ObservableBoolean(false)
     val empty = ObservableBoolean(false)
 
-    var currentFiltering = PlaceType.BARS
+    var currentFiltering = PlaceType.BAR
 
     fun loadPlaces(forceUpdate: Boolean, showLoadingUI: Boolean, location: PlacesRepository.PlaceLocation) {
         if (showLoadingUI) {
@@ -40,29 +43,27 @@ class PlacesViewModel(
         }
 
         placesRepository.getPlaces(location)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(subscribeOn)
+                .observeOn(observeOn)
                 .subscribe(     // onNext
                         { places ->
-                            val placesToShow: List<Place>
-
+                            val filteredPlaces: List<Place>
                             when (currentFiltering) {
-                                PlaceType.BARS ->
-                                    placesToShow = places.filter { it.type == PlaceType.BARS }
-                                PlaceType.BISTROS ->
-                                    placesToShow = places.filter { it.type == PlaceType.BISTROS }
-                                PlaceType.CAFES ->
-                                    placesToShow = places.filter { it.type == PlaceType.CAFES }
+                                PlaceType.BAR ->
+                                    filteredPlaces = places.filter { it.type == PlaceType.BAR }
+                                PlaceType.BISTRO ->
+                                    filteredPlaces = places.filter { it.type == PlaceType.BISTRO }
+                                PlaceType.CAFE ->
+                                    filteredPlaces = places.filter { it.type == PlaceType.CAFE }
                             }
 
                             if (showLoadingUI) {
                                 dataLoading.set(false)
                             }
                             isDataLoadingError.set(false)
-
                             with(items) {
                                 clear()
-                                addAll(placesToShow)
+                                addAll(filteredPlaces)
                                 empty.set(isEmpty())
                             }
                         },
@@ -89,7 +90,8 @@ class PlacesViewModel(
 
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
 
-            return PlacesViewModel(application, placesRepository) as T
+            return PlacesViewModel(application, placesRepository, Schedulers.io(),
+                    AndroidSchedulers.mainThread()) as T
         }
     }
 }

@@ -15,7 +15,7 @@ data class PlaceResponse(var results: List<Place>)
 
 
 enum class PlaceType private constructor() {
-    BARS,
-    CAFES,
-    BISTROS
+    BAR,
+    CAFE,
+    BISTRO
 }

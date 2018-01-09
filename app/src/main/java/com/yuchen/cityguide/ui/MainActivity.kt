@@ -108,9 +108,9 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
                     mLastLocation?.let {
                         mViewModel.currentFiltering =
                                 when (position) {
-                                    0 -> PlaceType.BARS
-                                    1 -> PlaceType.BISTROS
-                                    else -> PlaceType.CAFES
+                                    0 -> PlaceType.BAR
+                                    1 -> PlaceType.BISTRO
+                                    else -> PlaceType.CAFE
                                 }
                         mViewModel.loadPlaces(false, false, it)
                     }
