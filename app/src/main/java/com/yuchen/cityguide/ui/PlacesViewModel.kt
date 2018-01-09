@@ -88,7 +88,7 @@ class PlacesViewModel(
         super.onCleared()
         viewDisposables.clear()
     }
-    
+
     companion object {
         private val TAG = javaClass.simpleName
     }
