@@ -40,8 +40,8 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
         setupmListAdapter()
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         getLocation(false)
     }
 
@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
                 } else {
                     Toast.makeText(this, "Location Permission is required for the app to work",
                             Toast
-                                    .LENGTH_LONG)
+                                    .LENGTH_LONG).show()
                 }
                 return
             }
