@@ -14,6 +14,9 @@ import io.reactivex.schedulers.Schedulers
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import io.reactivex.Scheduler
+import io.reactivex.disposables.CompositeDisposable
+
+
 
 
 /**
@@ -34,6 +37,8 @@ class PlacesViewModel(
 
     var currentFiltering = PlaceType.BAR
 
+    private val viewDisposables = CompositeDisposable()
+
     fun loadPlaces(forceUpdate: Boolean, showLoadingUI: Boolean, location: PlacesRepository.PlaceLocation) {
         if (showLoadingUI) {
             dataLoading.set(true)
@@ -42,7 +47,7 @@ class PlacesViewModel(
             placesRepository.refreshPlaces()
         }
 
-        placesRepository.getPlaces(location)
+        val disposable = placesRepository.getPlaces(location)
                 .subscribeOn(subscribeOn)
                 .observeOn(observeOn)
                 .subscribe(     // onNext
@@ -76,10 +81,14 @@ class PlacesViewModel(
                                 //todo show error on ui
                             }
                         })
-
-
+        viewDisposables.add(disposable)
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        viewDisposables.clear()
+    }
+    
     companion object {
         private val TAG = javaClass.simpleName
     }
