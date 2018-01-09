@@ -6,6 +6,7 @@ import com.yuchen.cityguide.data.PlacesDataSource
 import io.reactivex.Observable
 import com.yuchen.cityguide.data.Place
 import com.yuchen.cityguide.data.PlaceType
+import io.reactivex.Single
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
@@ -37,7 +38,8 @@ class PlacesRemoteDataSource : PlacesDataSource {
 
     }
 
-    private fun fetchPlaces(type: String, placeType: PlaceType, location: Location): List<Place> {
+    private fun fetchPlaces(type: String, placeType: PlaceType, location: Location):
+            Single<List<Place>> {
         val locationStr = "%f,%f".format(location.latitude,
                 location.longitude)
         Log.d(TAG, "location $location")
@@ -48,7 +50,7 @@ class PlacesRemoteDataSource : PlacesDataSource {
                             .doOnNext { place ->
                                 place.type = placeType
                             }
-                }.toList().blockingGet()
+                }.toList()
 
     }
 
@@ -57,13 +59,13 @@ class PlacesRemoteDataSource : PlacesDataSource {
             val cafeList = fetchPlaces("cafe", PlaceType.CAFE, location)
             val barList = fetchPlaces("bar", PlaceType.BAR, location)
             val restaurantList = fetchPlaces("restaurant", PlaceType.BISTRO, location)
-            val combinedList = mutableListOf<Place>()
-            combinedList.addAll(cafeList)
-            combinedList.addAll(barList)
-            combinedList.addAll(restaurantList)
-
-            val destinations = combinedList.map { "%f,%f".format(it.geometry.location.lat,
-                    it.geometry.location.lng) }.toList().joinToString("|")
+            val combinedList = Single.concat(cafeList, barList, restaurantList).toObservable()
+                    .flatMapIterable { it }
+                    .toList().blockingGet()
+            val destinations = combinedList.map {
+                "%f,%f".format(it.geometry.location.lat,
+                        it.geometry.location.lng)
+            }.toList().joinToString("|")
             val locationStr = "%f,%f".format(location.latitude,
                     location.longitude)
             val distanceResponse = mPlaceService.getDistances(locationStr, destinations,
